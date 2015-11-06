@@ -151,6 +151,7 @@ class Image(object):
         self.direction_cosines = None
         self.data = data
         self.name = fname
+        self.from_file = False
 
         if autoload and data is None and self.name:
             self.load(self.name, *args, **kwargs)
@@ -183,6 +184,7 @@ class Image(object):
         '''Load a file'''
         self.__wrapper.load(name, dtype=self.dtype, metadata_only=metadata_only)
         self.header = self._read_header(name)
+        self._from_file = True
         # catch NaN values
         if not metadata_only and np.any(self.data == -sys.float_info.max):
             if not with_nan:
@@ -245,7 +247,11 @@ class Image(object):
         return [self.__wrapper.nspacing(i) for i in range(1, self.__wrapper.nb_dim()+1)]
     
     def dim(self):
-        return [d for d in reversed(self.data.shape)]
+        if self.from_file:
+            dim = [self.__wrapper.ndim(i) for i in range(1, self.__wrapper.nb_dim()+1)]
+        else:
+            dim = list(reversed(self.data.shape))
+        return dim
     
     def start(self):
         return [self.__wrapper.nstart(i) for i in range(1, self.__wrapper.nb_dim()+1)]
